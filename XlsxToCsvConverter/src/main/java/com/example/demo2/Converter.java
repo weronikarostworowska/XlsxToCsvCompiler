@@ -12,8 +12,6 @@ import java.io.IOException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 
-import javax.servlet.http.Part;
-
 public class Converter {
     public static File convert(File inputFile) {
         // Convert XLSX file to CSV
@@ -28,28 +26,26 @@ public class Converter {
                     for (int j = 0; j < row.getLastCellNum(); j++) {
                         Cell cell = row.getCell(j);
                         if (cell != null) {
-                            switch (cell.getCellType()) {
-                                case Cell.CELL_TYPE_STRING:
+                            switch (cell.getCellTypeEnum()) {
+                                case STRING:
                                     fw.write(cell.getStringCellValue());
                                     break;
-                                case Cell.CELL_TYPE_NUMERIC:
+                                case NUMERIC:
                                     if (DateUtil.isCellDateFormatted(cell)) {
                                         fw.write(cell.getDateCellValue().toString());
                                     } else {
                                         fw.write(Double.toString(cell.getNumericCellValue()));
                                     }
                                     break;
-                                case Cell.CELL_TYPE_BOOLEAN:
+                                case BOOLEAN:
                                     fw.write(Boolean.toString(cell.getBooleanCellValue()));
                                     break;
-                                case Cell.CELL_TYPE_FORMULA:
-                                    switch (cell.getCachedFormulaResultType()) {
-                                        case Cell.CELL_TYPE_NUMERIC:
-                                            fw.write(Double.toString(cell.getNumericCellValue()));
-                                            break;
-                                        case Cell.CELL_TYPE_STRING:
-                                            fw.write(cell.getRichStringCellValue().getString());
-                                            break;
+                                case FORMULA:
+                                    CellType formulaType = cell.getCachedFormulaResultTypeEnum();
+                                    if (formulaType == CellType.NUMERIC) {
+                                        fw.write(Double.toString(cell.getNumericCellValue()));
+                                    } else if (formulaType == CellType.STRING) {
+                                        fw.write(cell.getRichStringCellValue().getString());
                                     }
                                     break;
                                 default:
